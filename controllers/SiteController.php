@@ -57,11 +57,20 @@ class SiteController extends Controller
     public function actionIndes()
     {
         $user = new User();
-        $user =  User::findOne(['id' => '1']);
         
-        
-        return json_encode($user->username, JSON_FORCE_OBJECT);
-        
+        $user->id = 2;
+        $user->username = '2';
+        $user->login = '2';
+        $user->password = '2';
+        $user->telephone = '2';
+        $user->mailAddress = '2';  
+        $user->authKey = '1';
+        $user->accessToken = '1';  
+        //$user->load(Yii::$app->request->post());   
+        if($user->save())             
+            return 1;
+        else 
+            return 0;
     }
 
     /**
@@ -81,6 +90,7 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
+        
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
@@ -95,6 +105,8 @@ class SiteController extends Controller
             'model' => $model,
         ]);
     }
+
+
 
     /**
      * Logout action.
@@ -127,12 +139,35 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays about page.
+     * Displays registrate page.
      *
      * @return string
      */
-    public function actionAbout()
-    {
-        return $this->render('about');
+    public function actionRegistrate()
+    {      
+        if (!Yii::$app->user->isGuest) {
+            return $this->goHome();
+        }
+
+        $model = new LoginForm();
+        if ($model->load(Yii::$app->request->post())) {
+            $user = new User();
+            $user->id = 2;
+            $user->username = $model->username;
+            $user->login = $model->login;
+            $user->password = $model->password;
+            $user->telephone = $model->telephone;
+            $user->mailAddress = $model->mailAddress;  
+            $user->authKey = '1';
+            $user->accessToken = '1';  
+            //$user->load(Yii::$app->request->post());                
+            return $user->save();
+        }
+
+        $model->password = '';
+        return $this->render('registrate', [
+            'model' => $model,
+        ]);
+        
     }
 }

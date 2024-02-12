@@ -10,10 +10,11 @@ use yii\base\Model;
  */
 class ContactForm extends Model
 {
-    public $name;
-    public $email;
-    public $subject;
+    public $gos_number;
+    //public $email;
+    //public $subject;
     public $body;
+    public $user;
     public $verifyCode;
 
 
@@ -24,9 +25,9 @@ class ContactForm extends Model
     {
         return [
             // name, email, subject and body are required
-            [['name', 'email', 'subject', 'body'], 'required'],
+            [['gos_number', 'subject', 'body'], 'required'],
             // email has to be a valid email address
-            ['email', 'email'],
+            
             // verifyCode needs to be entered correctly
             ['verifyCode', 'captcha'],
         ];
@@ -53,8 +54,8 @@ class ContactForm extends Model
             Yii::$app->mailer->compose()
                 ->setTo($email)
                 ->setFrom([Yii::$app->params['senderEmail'] => Yii::$app->params['senderName']])
-                ->setReplyTo([$this->email => $this->name])
-                ->setSubject($this->subject)
+                //->setReplyTo([$this->email => $this->gos_number])
+                //->setSubject($this->subject)
                 ->setTextBody($this->body)
                 ->send();
 

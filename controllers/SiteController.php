@@ -67,7 +67,7 @@ class SiteController extends Controller
         $user->authKey = '1';
         $user->accessToken = '1';  
         //$user->load(Yii::$app->request->post());   
-        if($user->save())             
+        if($user->save(false))             
             return 1;
         else 
             return 0;
@@ -152,19 +152,26 @@ class SiteController extends Controller
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post())) {
             $user = new User();
-            $user->id = 2;
-            $user->username = $model->username;
+            //$user->id = 2;
             $user->login = $model->login;
+            $user->username = $model->username;
             $user->password = $model->password;
+            $user->fio = $model->fio;
             $user->telephone = $model->telephone;
             $user->mailAddress = $model->mailAddress;  
             $user->authKey = '1';
             $user->accessToken = '1';  
-            //$user->load(Yii::$app->request->post());                
-            return $user->save();
+            //$user->load(Yii::$app->request->post()); 
+            $user->save(false);
+ 
+            
+            Yii::$app->user->login($user, $model->rememberMe ? 3600*24*30 : 0);
+            if (!Yii::$app->user->isGuest) {
+                return $this->goHome();
+            }
         }
 
-        $model->password = '';
+        
         return $this->render('registrate', [
             'model' => $model,
         ]);

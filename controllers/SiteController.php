@@ -10,6 +10,7 @@ use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\User;
+use app\models\Requisitions;
 
 class SiteController extends Controller
 {
@@ -96,9 +97,20 @@ class SiteController extends Controller
         }
 
         $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
-        }
+        $model->load(Yii::$app->request->post()) ;
+        $user = User::findOne(['username'=>$model->username]);
+            
+        if($model->username != 0)                
+        {
+            Yii::$app->user->login($user,3600*24*30);
+            // добавление новой куки в HTTP-ответ
+            $cookies = Yii::$app->response->cookies;
+            $cookies->add(new \yii\web\Cookie([
+            'id' => $user->id
+            ]));
+            return $this->goHome();
+        }    
+        
 
         $model->password = '';
         return $this->render('login', [
@@ -128,9 +140,23 @@ class SiteController extends Controller
     public function actionContact()
     {
         $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
+        $request = new Requisitions();
+        if ($model->load(Yii::$app->request->post())) {
             Yii::$app->session->setFlash('contactFormSubmitted');
+            $user = Yii::$app->getUser();
+            $user_ = new User();
+            $cookies = Yii::$app->request->cookies;
 
+            // получение куки с названием "language. Если кука не существует, "en"  будет возвращено как значение по-умолчанию.
+            $language = $cookies->getValue('language', 'en');
+            //$user_ = User::findOne(['id'=>Yii::$app->user->identity->id]);
+            
+
+            $request->fio_user = Yii::$app->user->identity->username;
+            $request->gos_num = $model->gos_number;
+            $request->description = $model->body;
+            $request->status = "обработка";
+            $request->save(false);
             return $this->refresh();
         }
         return $this->render('contact', [
@@ -163,12 +189,22 @@ class SiteController extends Controller
             $user->accessToken = '1';  
             //$user->load(Yii::$app->request->post()); 
             $user->save(false);
- 
-            
-            Yii::$app->user->login($user, $model->rememberMe ? 3600*24*30 : 0);
-            if (!Yii::$app->user->isGuest) {
-                return $this->goHome();
+
+            $model = new LoginForm();
+            if ($model->load(Yii::$app->request->post()) && $model->login()) {
+                // добавление новой куки в HTTP-ответ
+                $cookies = Yii::$app->response->cookies;
+                $cookies->add(new \yii\web\Cookie([
+                'id' => $user->id
+                ]));
+
+                return $this->goBack();
             }
+            
+            //Yii::$app->user->login($user, $model->rememberMe ? 3600*24*30 : 0);
+            //if (!Yii::$app->user->isGuest) {
+             //   return $this->goHome();
+            //}
         }
 
         
